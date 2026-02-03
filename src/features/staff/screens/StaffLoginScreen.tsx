@@ -77,6 +77,14 @@ export default function StaffLoginScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
+          {/* Back Button */}
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -140,14 +148,6 @@ export default function StaffLoginScreen() {
                 ) : (
                   <Text style={styles.loginButtonText}>Anmelden</Text>
                 )}
-              </TouchableOpacity>
-
-              {/* Back Button */}
-              <TouchableOpacity
-                onPress={() => navigation.goBack()}
-                style={styles.backButton}
-              >
-                <Ionicons name="arrow-back" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -240,9 +240,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   backButton: {
-    marginTop: 30,
-    padding: 16,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 50,
+    position: "absolute",
+    top: 50,
+    left: 20,
+    padding: 10,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 20,
+    zIndex: 10,
   },
 });

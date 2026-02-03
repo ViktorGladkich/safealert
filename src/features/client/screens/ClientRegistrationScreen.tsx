@@ -16,42 +16,79 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../../config/firebase";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../../../config/firebase";
 import { branding } from "../../../config/branding";
 
 const PRIMARY_COLOR = branding.primaryColor;
 
-export default function ClientLoginScreen() {
-  const navigation = useNavigation();
+export default function ClientRegistrationScreen() {
+  const navigation = useNavigation<any>();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Fehler", "Bitte E-Mail und Passwort eingeben.");
+  const handleRegister = async () => {
+    if (!name || !email || !password || !confirmPassword) {
+      Alert.alert("Fehler", "Bitte füllen Sie alle Felder aus.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Fehler", "Passwörter stimmen nicht überein.");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert(
+        "Fehler",
+        "Das Passwort muss mindestens 6 Zeichen lang sein.",
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      // Success - navigation will be handled by auth state listener or just navigate here
-      navigation.navigate("ClientHome" as never);
+      // 1. Create Auth User
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password,
+      );
+      const user = userCredential.user;
+
+      // 2. Update Profile Display Name
+      await updateProfile(user, { displayName: name });
+
+      // 3. Create User Document in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        name: name,
+        role: "client",
+        createdAt: serverTimestamp(),
+      });
+
+      // 4. Navigate to Home
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "ClientHome" }],
+      });
     } catch (error: any) {
-      console.error("Login Error:", error);
-
-      let errorMessage = "Anmeldung fehlgeschlagen.";
-      if (error.code === "auth/invalid-email")
+      console.error("Registration Error:", error);
+      let errorMessage = "Registrierung fehlgeschlagen.";
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "Diese E-Mail-Adresse wird bereits verwendet.";
+      }
+      if (error.code === "auth/invalid-email") {
         errorMessage = "Ungültige E-Mail-Adresse.";
-      if (error.code === "auth/user-not-found")
-        errorMessage = "Benutzer nicht gefunden.";
-      if (error.code === "auth/wrong-password")
-        errorMessage = "Falsches Passwort.";
-      if (error.code === "auth/invalid-credential")
-        errorMessage = "Ungültige Anmeldedaten.";
-
+      }
+      if (error.code === "auth/weak-password") {
+        errorMessage = "Das Passwort ist zu schwach.";
+      }
       Alert.alert("Fehler", errorMessage);
     } finally {
       setIsLoading(false);
@@ -88,8 +125,26 @@ export default function ClientLoginScreen() {
               {/* Logo */}
               <Image source={branding.logoAsset} style={styles.logo} />
 
-              <Text style={styles.title}>Kunden-Login</Text>
-              <Text style={styles.subtitle}>Bitte melden Sie sich an</Text>
+              <Text style={styles.title}>Registrierung</Text>
+              <Text style={styles.subtitle}>Erstellen Sie ein neues Konto</Text>
+
+              {/* Name Input */}
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color={PRIMARY_COLOR}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Vollständiger Name"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                />
+              </View>
 
               {/* Email Input */}
               <View style={styles.inputContainer}>
@@ -128,40 +183,44 @@ export default function ClientLoginScreen() {
                 />
               </View>
 
-              {/* Login Button */}
+              {/* Confirm Password Input */}
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={PRIMARY_COLOR}
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Passwort bestätigen"
+                  placeholderTextColor="rgba(255,255,255,0.5)"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                />
+              </View>
+
+              {/* Register Button */}
               <TouchableOpacity
-                onPress={handleLogin}
+                onPress={handleRegister}
                 disabled={isLoading}
-                style={styles.loginButton}
+                style={styles.registerButton}
               >
                 {isLoading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.loginButtonText}>Anmelden</Text>
+                  <Text style={styles.registerButtonText}>Registrieren</Text>
                 )}
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => Alert.alert("Todo", "Forgot Password flow")}
-                style={styles.forgotPassword}
+                onPress={() => navigation.navigate("ClientLogin")}
+                style={styles.loginLink}
               >
-                <Text style={styles.forgotPasswordText}>
-                  Passwort vergessen?
-                </Text>
-              </TouchableOpacity>
-
-              {/* Registration Link */}
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate("ClientRegistration" as never)
-                }
-                style={styles.registrationLink}
-              >
-                <Text style={styles.registrationLinkText}>
-                  Noch kein Konto?{" "}
-                  <Text style={styles.registrationLinkHighlight}>
-                    Registrieren
-                  </Text>
+                <Text style={styles.loginLinkText}>
+                  Bereits ein Konto?{" "}
+                  <Text style={styles.loginLinkHighlight}>Anmelden</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -192,14 +251,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     resizeMode: "contain",
     marginBottom: 24,
   },
   title: {
     color: "#fff",
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
@@ -208,7 +267,7 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.6)",
     fontSize: 16,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 32,
   },
   inputContainer: {
     width: "100%",
@@ -227,34 +286,39 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: "#fff",
-    padding: 18,
+    padding: 16,
     fontSize: 16,
   },
-  loginButton: {
+  registerButton: {
     width: "100%",
     height: 56,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: PRIMARY_COLOR,
-    marginTop: 24,
+    marginTop: 16,
     shadowColor: PRIMARY_COLOR,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 8,
     elevation: 8,
   },
-  loginButtonText: {
+  registerButtonText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },
-  forgotPassword: {
-    marginTop: 20,
+  loginLink: {
+    marginTop: 24,
+    padding: 10,
   },
-  forgotPasswordText: {
+  loginLinkText: {
     color: "rgba(255,255,255,0.6)",
     fontSize: 14,
+  },
+  loginLinkHighlight: {
+    color: PRIMARY_COLOR,
+    fontWeight: "bold",
   },
   backButton: {
     position: "absolute",
@@ -264,17 +328,5 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     borderRadius: 20,
     zIndex: 10,
-  },
-  registrationLink: {
-    marginTop: 32,
-    padding: 10,
-  },
-  registrationLinkText: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 14,
-  },
-  registrationLinkHighlight: {
-    color: PRIMARY_COLOR,
-    fontWeight: "bold",
   },
 });

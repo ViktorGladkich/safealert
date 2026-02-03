@@ -151,14 +151,13 @@ export default function RoleSelectionScreen() {
               onPress={() => navigation.navigate("ClientLogin")}
             />
 
-            {/* Staff Button (Pulsing) */}
+            {/* Staff Button */}
             <RoleButton
               title="PERSONAL"
               icon="shield-checkmark-outline"
               gradientColors={["#BF360C", "#FF5722"]}
               shadowColor="#FF5722"
               onPress={() => navigation.navigate("StaffLogin")}
-              pulsing
             />
 
             <View style={styles.spacer} />
@@ -245,7 +244,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
     letterSpacing: 2,

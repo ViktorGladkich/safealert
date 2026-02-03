@@ -678,7 +678,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#9C27B0",
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: "bold",
     // Color handled dynamically
   },
   quickActionsContainer: {
@@ -702,7 +703,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quickActionText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: "600",
     // Color handled dynamically
   },
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "500",
     // Color handled dynamically
   },

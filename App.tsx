@@ -6,6 +6,7 @@ import RoleSelectionScreen from "./src/features/auth/screens/RoleSelectionScreen
 import StaffLoginScreen from "./src/features/staff/screens/StaffLoginScreen";
 import StaffNavigator from "./src/features/staff/StaffNavigator";
 import ClientLoginScreen from "./src/features/client/screens/ClientLoginScreen";
+import ClientRegistrationScreen from "./src/features/client/screens/ClientRegistrationScreen";
 import ClientHomeScreen from "./src/features/client/screens/ClientHomeScreen";
 import ChatScreen from "./src/features/shared/screens/ChatScreen";
 import EmergencyContactsScreen from "./src/features/client/screens/EmergencyContactsScreen";
@@ -36,6 +37,10 @@ export default function App() {
         <Stack.Screen name="StaffLogin" component={StaffLoginScreen} />
         <Stack.Screen name="StaffNavigator" component={StaffNavigator} />
         <Stack.Screen name="ClientLogin" component={ClientLoginScreen} />
+        <Stack.Screen
+          name="ClientRegistration"
+          component={ClientRegistrationScreen}
+        />
         <Stack.Screen name="ClientHome" component={ClientHomeScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen
