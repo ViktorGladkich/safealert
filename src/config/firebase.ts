@@ -8,12 +8,12 @@ import { getStorage } from "firebase/storage";
 
 // Values from google-services.json
 const firebaseConfig = {
-  apiKey: "AIzaSyAw7yT3B7qXY35Q4O29DylDVn4gYuStcso",
-  authDomain: "safealert-455c5.firebaseapp.com",
-  projectId: "safealert-455c5",
-  storageBucket: "safealert-455c5.firebasestorage.app",
-  messagingSenderId: "803296529846",
-  appId: "1:803296529846:android:5787f0c5efdd7fe6414517", // Android App ID
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
