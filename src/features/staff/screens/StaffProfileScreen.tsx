@@ -3,17 +3,26 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../../../config/firebase";
+import { signOut } from "firebase/auth";
 
 const STAFF_COLOR = "#FF5722";
 
 export default function StaffProfileScreen() {
   const navigation = useNavigation();
 
-  const handleLogout = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "RoleSelection" as never }],
-    });
+  // ...
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "RoleSelection" as never }],
+      });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   return (

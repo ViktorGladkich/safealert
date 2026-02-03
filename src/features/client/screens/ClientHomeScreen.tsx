@@ -25,6 +25,7 @@ import {
   onSnapshot,
   getDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 import { db, auth } from "../../../config/firebase";
 import { useNavigation } from "@react-navigation/native";
@@ -181,6 +182,51 @@ export default function ClientHomeScreen() {
     return () => unsubscribe();
   }, []);
 
+  // Live Tracking Effect
+  useEffect(() => {
+    let subscription: Location.LocationSubscription | null = null;
+
+    const startTracking = async () => {
+      if (!activeEmergencyId) return;
+
+      try {
+        subscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            timeInterval: 3000, // Update every 3 seconds
+            distanceInterval: 5, // Update every 5 meters
+          },
+          async (newLoc) => {
+            setLocation(newLoc); // Update local state
+
+            // Push to Firestore
+            try {
+              const docRef = doc(db, "emergencies", activeEmergencyId);
+              await updateDoc(docRef, {
+                latitude: newLoc.coords.latitude,
+                longitude: newLoc.coords.longitude,
+              });
+            } catch (error) {
+              console.log("Error updating location", error);
+            }
+          },
+        );
+      } catch (error) {
+        console.error("Could not start tracking", error);
+      }
+    };
+
+    if (activeEmergencyId) {
+      startTracking();
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [activeEmergencyId]);
+
   const handleAlarm = async (type: AlarmType) => {
     if (!auth.currentUser) return;
     setLoading(true);
@@ -249,7 +295,7 @@ export default function ClientHomeScreen() {
       icon: "settings-outline",
       title: "Einstellungen",
       subtitle: "App Einstellungen",
-      onPress: () => Alert.alert("Einstellungen", "Demnächst!"),
+      onPress: () => (navigation as any).navigate("ClientSettings"),
     },
   ];
 
@@ -417,7 +463,7 @@ export default function ClientHomeScreen() {
 
           <TouchableOpacity
             style={styles.quickAction}
-            onPress={() => Alert.alert("Einstellungen", "Demnächst verfügbar!")}
+            onPress={() => (navigation as any).navigate("ClientSettings")}
           >
             <LinearGradient
               colors={["#5E35B1", "#9575CD"]}

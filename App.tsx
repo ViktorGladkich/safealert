@@ -9,6 +9,7 @@ import ClientLoginScreen from "./src/features/client/screens/ClientLoginScreen";
 import ClientHomeScreen from "./src/features/client/screens/ClientHomeScreen";
 import ChatScreen from "./src/features/shared/screens/ChatScreen";
 import EmergencyContactsScreen from "./src/features/client/screens/EmergencyContactsScreen";
+import ClientSettingsScreen from "./src/features/client/screens/ClientSettingsScreen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/config/toastConfig";
 
@@ -41,6 +42,7 @@ export default function App() {
           name="EmergencyContacts"
           component={EmergencyContactsScreen}
         />
+        <Stack.Screen name="ClientSettings" component={ClientSettingsScreen} />
       </Stack.Navigator>
       <Toast config={toastConfig} />
     </NavigationContainer>
