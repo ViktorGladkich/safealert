@@ -36,10 +36,10 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-
-const ACCENT_COLOR = "#FF5722";
+import { useTheme } from "../../../hooks/useTheme";
 
 export default function ChatScreen() {
+  const { colors, isDark } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<any>();
   const { emergencyId, userName, userId } = route.params;
@@ -93,13 +93,14 @@ export default function ChatScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.All, // Allow Images and Videos
       allowsEditing: true,
       quality: 0.7,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      uploadImage(result.assets[0].uri);
+      const type = result.assets[0].type ?? "image";
+      uploadFile(result.assets[0].uri, type);
     }
   };
 
@@ -112,7 +113,7 @@ export default function ChatScreen() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        uploadImage(result.assets[0].uri);
+        uploadFile(result.assets[0].uri, "image"); // Camera is usually image only unless configured for video
       }
     } else {
       Alert.alert(
@@ -122,13 +123,17 @@ export default function ChatScreen() {
     }
   };
 
-  const uploadImage = async (uri: string) => {
+  const uploadFile = async (
+    uri: string,
+    type: "image" | "video" | string = "image",
+  ) => {
     setIsUploading(true);
     try {
       const response = await fetch(uri);
       const blob = await response.blob();
 
-      const filename = `chat/${emergencyId}/${Date.now()}.jpg`;
+      const extension = type === "video" ? "mp4" : "jpg";
+      const filename = `chat/${emergencyId}/${Date.now()}.${extension}`;
       const storageRef = ref(storage, filename);
 
       await uploadBytes(storageRef, blob);
@@ -142,13 +147,14 @@ export default function ChatScreen() {
           _id: userName || "anonymous",
           name: userName || "Anonymous",
         },
-        image: downloadUrl,
+        image: type !== "video" ? downloadUrl : undefined,
+        video: type === "video" ? downloadUrl : undefined,
       };
 
       onSend([message]);
     } catch (error) {
       console.error("Upload error", error);
-      Alert.alert("Error", "Failed to upload image.");
+      Alert.alert("Error", "Failed to upload media.");
     } finally {
       setIsUploading(false);
     }
@@ -160,19 +166,22 @@ export default function ChatScreen() {
         {...props}
         wrapperStyle={{
           right: {
-            backgroundColor: ACCENT_COLOR,
+            backgroundColor: colors.accent,
             borderBottomRightRadius: 0,
             marginBottom: 4,
           },
           left: {
-            backgroundColor: "#333",
+            backgroundColor: isDark ? "#333" : "#E0E0E0",
             borderBottomLeftRadius: 0,
             marginBottom: 4,
           },
         }}
         textStyle={{
           right: { color: "white" },
-          left: { color: "white" },
+          left: { color: isDark ? "white" : "black" },
+        }}
+        timeTextStyle={{
+          left: { color: isDark ? "#aaa" : "#555" },
         }}
       />
     );
@@ -182,11 +191,11 @@ export default function ChatScreen() {
     <InputToolbar
       {...props}
       containerStyle={{
-        backgroundColor: "#1a1a1a",
-        borderTopColor: "#333",
+        backgroundColor: colors.surface,
+        borderTopColor: colors.border,
         paddingVertical: 4,
       }}
-      textInputStyle={{ color: "white" }}
+      textInputStyle={{ color: colors.text }}
     />
   );
 
@@ -201,7 +210,9 @@ export default function ChatScreen() {
         marginLeft: 4,
         marginBottom: 4,
       }}
-      icon={() => <Ionicons name="add-circle" size={28} color={ACCENT_COLOR} />}
+      icon={() => (
+        <Ionicons name="add-circle" size={28} color={colors.accent} />
+      )}
       options={{
         "Foto aufnehmen": takePhoto,
         "Aus Galerie wählen": pickImage,
@@ -212,22 +223,30 @@ export default function ChatScreen() {
   );
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        edges={["top"]}
+        style={[
+          styles.headerSafeArea,
+          { backgroundColor: colors.surface, borderBottomColor: colors.border },
+        ]}
+      >
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Ionicons name="chevron-back" size={28} color={ACCENT_COLOR} />
+            <Ionicons name="chevron-back" size={28} color={colors.accent} />
           </TouchableOpacity>
 
           <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>Notfall-Chat</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              Notfall-Chat
+            </Text>
           </View>
 
           <TouchableOpacity style={styles.callButton}>
-            <Ionicons name="call" size={20} color={ACCENT_COLOR} />
+            <Ionicons name="call" size={20} color={colors.accent} />
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -245,18 +264,20 @@ export default function ChatScreen() {
         renderSend={(props) => (
           <Send {...props}>
             <View style={styles.sendButton}>
-              <Ionicons name="send" size={24} color={ACCENT_COLOR} />
+              <Ionicons name="send" size={24} color={colors.accent} />
             </View>
           </Send>
         )}
-        listProps={{ style: { backgroundColor: "black" } }}
+        listProps={{ style: { backgroundColor: colors.background } }}
         isCustomViewBottom
       />
 
       {isUploading && (
         <View style={styles.uploadingOverlay}>
-          <ActivityIndicator size="large" color={ACCENT_COLOR} />
-          <Text style={styles.uploadingText}>Foto wird hochgeladen...</Text>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={[styles.uploadingText, { color: colors.text }]}>
+            Foto wird hochgeladen...
+          </Text>
         </View>
       )}
 
@@ -270,13 +291,12 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    // Background dynamic
   },
   headerSafeArea: {
-    backgroundColor: "#1a1a1a",
+    // Background and border dynamic
     zIndex: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
   },
   header: {
     height: 56,
@@ -293,14 +313,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerTitle: {
-    color: "#fff",
     fontWeight: "bold",
     fontSize: 18,
+    // Color dynamic
   },
   callButton: {
     padding: 10,
     marginRight: -8,
-    backgroundColor: "rgba(127, 29, 29, 0.5)",
+    backgroundColor: "rgba(127, 29, 29, 0.2)",
     borderRadius: 20,
   },
   sendButton: {
@@ -319,8 +339,8 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   uploadingText: {
-    color: "#fff",
     marginTop: 8,
     fontWeight: "bold",
+    // Color dynamic
   },
 });

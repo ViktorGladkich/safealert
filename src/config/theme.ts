@@ -1,0 +1,30 @@
+export const colors = {
+  light: {
+    background: "#FFFFFF",
+    surface: "#F5F5F5",
+    surfaceHighlight: "#E0E0E0",
+    text: "#000000",
+    textSecondary: "#666666",
+    border: "#E0E0E0",
+    inputBackground: "#F5F5F5",
+    primary: "#0D47A1",
+    accent: "#FF5722",
+    success: "#2E7D32",
+    error: "#C62828",
+    logoShadow: "#0D47A1", // Light shadow or specific color for light mode logo bg
+  },
+  dark: {
+    background: "#000000",
+    surface: "#121212",
+    surfaceHighlight: "#1E1E1E",
+    text: "#FFFFFF",
+    textSecondary: "#AAAAAA",
+    border: "#333333",
+    inputBackground: "#1E1E1E",
+    primary: "#0D47A1",
+    accent: "#FF5722",
+    success: "#4CAF50",
+    error: "#EF5350",
+    logoShadow: "rgba(0,0,0,0.5)",
+  },
+};

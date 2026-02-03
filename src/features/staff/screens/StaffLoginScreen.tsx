@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  Image, // Added Image
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -19,6 +20,7 @@ const STAFF_COLOR = "#FF5722";
 
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../config/firebase";
+import { branding } from "../../../config/branding"; // Added branding
 import { Alert } from "react-native";
 
 export default function StaffLoginScreen() {
@@ -81,12 +83,9 @@ export default function StaffLoginScreen() {
           >
             <View style={styles.content}>
               {/* Icon */}
-              <View style={styles.iconContainer}>
-                <Ionicons
-                  name="shield-checkmark"
-                  size={80}
-                  color={STAFF_COLOR}
-                />
+              {/* Logo */}
+              <View style={styles.logoContainer}>
+                <Image source={branding.logoAsset} style={styles.logo} />
               </View>
 
               <Text style={styles.title}>Personal-Zugang</Text>
@@ -177,8 +176,16 @@ const styles = StyleSheet.create({
   content: {
     alignItems: "center",
   },
-  iconContainer: {
+  logoContainer: {
     marginBottom: 24,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 10,
+    borderRadius: 100,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    resizeMode: "contain",
   },
   title: {
     color: "#fff",

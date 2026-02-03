@@ -10,6 +10,7 @@ import {
   Linking,
   ScrollView,
   Dimensions,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SosButton from "../../../components/SosButton";
@@ -32,12 +33,14 @@ import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { branding } from "../../../config/branding";
+import { useTheme } from "../../../hooks/useTheme";
 
 const PRIMARY_COLOR = branding.primaryColor;
 type AlarmType = "normal" | "silent";
 
 export default function ClientHomeScreen() {
   const navigation = useNavigation();
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -300,10 +303,13 @@ export default function ClientHomeScreen() {
   ];
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
+        edges={["top"]}
+      >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <TouchableOpacity
             onPress={() => setShowMenu(!showMenu)}
             style={styles.menuButton}
@@ -311,13 +317,18 @@ export default function ClientHomeScreen() {
             <Ionicons
               name={showMenu ? "close" : "menu"}
               size={28}
-              color="white"
+              color={colors.text}
             />
           </TouchableOpacity>
 
           <View style={styles.headerLeft}>
-            <Ionicons name="shield-checkmark" size={32} color={PRIMARY_COLOR} />
-            <Text style={styles.headerTitle}>SafeAlert</Text>
+            <Image
+              source={branding.logoAsset}
+              style={{ width: 32, height: 32, resizeMode: "contain" }}
+            />
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              SafeAlert
+            </Text>
           </View>
 
           <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -332,6 +343,8 @@ export default function ClientHomeScreen() {
           style={[
             styles.menuOverlay,
             {
+              backgroundColor: colors.surface,
+              borderRightColor: colors.border,
               opacity: menuAnim,
               transform: [
                 {
@@ -346,16 +359,31 @@ export default function ClientHomeScreen() {
         >
           <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1 }}>
             <ScrollView style={styles.menuScroll}>
-              <View style={styles.menuHeader}>
-                <View style={styles.menuAvatar}>
+              <View
+                style={[
+                  styles.menuHeader,
+                  { borderBottomColor: colors.border },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.menuAvatar,
+                    { backgroundColor: colors.primary },
+                  ]}
+                >
                   <Text style={styles.menuAvatarText}>
                     {userProfile?.name?.charAt(0).toUpperCase() || "K"}
                   </Text>
                 </View>
-                <Text style={styles.menuUserName}>
+                <Text style={[styles.menuUserName, { color: colors.text }]}>
                   {userProfile?.name || "Kunde"}
                 </Text>
-                <Text style={styles.menuUserEmail}>
+                <Text
+                  style={[
+                    styles.menuUserEmail,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   {userProfile?.email || "Lädt..."}
                 </Text>
               </View>
@@ -373,14 +401,29 @@ export default function ClientHomeScreen() {
                     <Ionicons
                       name={item.icon as any}
                       size={24}
-                      color={PRIMARY_COLOR}
+                      color={colors.textSecondary}
                     />
                   </View>
                   <View style={styles.menuItemText}>
-                    <Text style={styles.menuItemTitle}>{item.title}</Text>
-                    <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                    <Text
+                      style={[styles.menuItemTitle, { color: colors.text }]}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.menuItemSubtitle,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {item.subtitle}
+                    </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={20} color="#555" />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -401,14 +444,24 @@ export default function ClientHomeScreen() {
       </View>
 
       {/* Bottom Section */}
-      <SafeAreaView edges={["bottom"]} style={styles.bottomSection}>
+      <SafeAreaView
+        edges={["bottom"]}
+        style={[styles.bottomSection, { backgroundColor: colors.background }]}
+      >
         {/* Instruction */}
         {!activeEmergencyId && (
           <View style={styles.instructionContainer}>
-            <Text style={styles.instructionTitle}>Anleitung</Text>
+            <Text style={[styles.instructionTitle, { color: colors.text }]}>
+              Anleitung
+            </Text>
             <View style={styles.instructionRow}>
               <View style={styles.instructionDot} />
-              <Text style={styles.instructionText}>
+              <Text
+                style={[
+                  styles.instructionText,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 3 Sek. halten → SOS Alarm
               </Text>
             </View>
@@ -416,7 +469,12 @@ export default function ClientHomeScreen() {
               <View
                 style={[styles.instructionDot, styles.instructionDotPurple]}
               />
-              <Text style={styles.instructionText}>
+              <Text
+                style={[
+                  styles.instructionText,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 6 Sek. halten → Stiller Alarm
               </Text>
             </View>
@@ -424,7 +482,15 @@ export default function ClientHomeScreen() {
         )}
 
         {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
+        <View
+          style={[
+            styles.quickActionsContainer,
+            {
+              backgroundColor: colors.surfaceHighlight,
+              borderTopColor: colors.border,
+            },
+          ]}
+        >
           <TouchableOpacity style={styles.quickAction} onPress={handleCall112}>
             <LinearGradient
               colors={["#C62828", "#EF5350"]}
@@ -432,7 +498,9 @@ export default function ClientHomeScreen() {
             >
               <Ionicons name="call" size={26} color="white" />
             </LinearGradient>
-            <Text style={styles.quickActionText}>Notruf 112</Text>
+            <Text style={[styles.quickActionText, { color: colors.text }]}>
+              Notruf 112
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -445,7 +513,9 @@ export default function ClientHomeScreen() {
             >
               <Ionicons name="location" size={26} color="white" />
             </LinearGradient>
-            <Text style={styles.quickActionText}>Standort</Text>
+            <Text style={[styles.quickActionText, { color: colors.text }]}>
+              Standort
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -458,7 +528,9 @@ export default function ClientHomeScreen() {
             >
               <Ionicons name="people" size={26} color="white" />
             </LinearGradient>
-            <Text style={styles.quickActionText}>Kontakte</Text>
+            <Text style={[styles.quickActionText, { color: colors.text }]}>
+              Kontakte
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -471,7 +543,9 @@ export default function ClientHomeScreen() {
             >
               <Ionicons name="settings" size={26} color="white" />
             </LinearGradient>
-            <Text style={styles.quickActionText}>Einstellungen</Text>
+            <Text style={[styles.quickActionText, { color: colors.text }]}>
+              Einstellungen
+            </Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -482,6 +556,8 @@ export default function ClientHomeScreen() {
           style={[
             styles.statusCard,
             {
+              backgroundColor: colors.surface,
+              borderColor: branding.primaryColor,
               opacity: opacityAnim,
               transform: [{ translateY: slideAnim }],
             },
@@ -490,7 +566,9 @@ export default function ClientHomeScreen() {
           <View style={styles.statusCardContent}>
             <View style={styles.statusIndicator}>
               <View style={styles.statusDot} />
-              <Text style={styles.statusTitle}>SOS AKTIV</Text>
+              <Text style={[styles.statusTitle, { color: colors.text }]}>
+                SOS AKTIV
+              </Text>
             </View>
             <Text style={styles.statusLabel}>
               {emergencyStatus === "accepted"
@@ -521,10 +599,10 @@ export default function ClientHomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    // Background color handled dynamically
   },
   safeArea: {
-    backgroundColor: "#000",
+    // Background color handled dynamically
   },
   header: {
     flexDirection: "row",
@@ -533,7 +611,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.08)",
+    // Border color handled dynamically
   },
   headerLeft: {
     flexDirection: "row",
@@ -541,10 +619,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerTitle: {
-    color: "#fff",
     fontSize: 22,
     fontWeight: "bold",
     letterSpacing: 1,
+    // Color handled dynamically
   },
   logoutButton: {
     padding: 10,
@@ -571,7 +649,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   bottomSection: {
-    backgroundColor: "#000",
+    // Background color handled dynamically
   },
   instructionContainer: {
     alignItems: "center",
@@ -579,10 +657,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   instructionTitle: {
-    color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 12,
+    // Color handled dynamically
   },
   instructionRow: {
     flexDirection: "row",
@@ -600,8 +678,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#9C27B0",
   },
   instructionText: {
-    color: "rgba(255,255,255,0.6)",
     fontSize: 14,
+    // Color handled dynamically
   },
   quickActionsContainer: {
     flexDirection: "row",
@@ -610,8 +688,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "#0A0A0A",
+    // Background and border color handled dynamically
   },
   quickAction: {
     alignItems: "center",
@@ -625,9 +702,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   quickActionText: {
-    color: "#fff",
     fontSize: 12,
     fontWeight: "600",
+    // Color handled dynamically
   },
   // Menu Styles
   menuButton: {
@@ -635,7 +712,7 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(125,125,125,0.1)", // Neutral transparent for both modes
     borderRadius: 22,
   },
   menuOverlay: {
@@ -644,7 +721,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     width: Dimensions.get("window").width * 0.8, // 80% width
-    backgroundColor: "#121212",
     zIndex: 100,
     shadowColor: "#000",
     shadowOffset: { width: 4, height: 0 },
@@ -652,7 +728,7 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 20,
     borderRightWidth: 1,
-    borderRightColor: "rgba(255,255,255,0.1)",
+    // Background and border handled dynamically
   },
   menuScroll: {
     flex: 1,
@@ -660,17 +736,17 @@ const styles = StyleSheet.create({
   menuHeader: {
     padding: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.1)",
     marginBottom: 8,
+    // Border color handled dynamically
   },
   menuAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: PRIMARY_COLOR,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
+    // Background color handled dynamically
   },
   menuAvatarText: {
     color: "white",
@@ -678,12 +754,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   menuUserName: {
-    color: "white",
     fontSize: 20,
     fontWeight: "bold",
+    // Color handled dynamically
   },
   menuUserEmail: {
-    color: "#888",
+    // color: "#888", // Handled dynamically
     fontSize: 14,
     marginTop: 4,
   },
@@ -701,12 +777,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemTitle: {
-    color: "white",
     fontSize: 16,
     fontWeight: "500",
+    // Color handled dynamically
   },
   menuItemSubtitle: {
-    color: "#666",
+    // color: "#666", // Handled dynamically
     fontSize: 12,
     marginTop: 2,
   },
@@ -715,14 +791,14 @@ const styles = StyleSheet.create({
     bottom: 180,
     left: 16,
     right: 16,
-    backgroundColor: "#1A1A1A",
+    // backgroundColor: "#1A1A1A", // Handled dynamically
     padding: 18,
     borderRadius: 18,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     borderWidth: 1,
-    borderColor: "rgba(255, 82, 82, 0.4)",
+    // borderColor: "rgba(255, 82, 82, 0.4)", // Handled dynamically
     shadowColor: "#FF0000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -745,7 +821,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FF5252",
   },
   statusTitle: {
-    color: "#fff",
+    // color: "#fff", // Handled dynamically
     fontWeight: "bold",
     fontSize: 15,
   },
