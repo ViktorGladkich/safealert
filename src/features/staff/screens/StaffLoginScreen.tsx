@@ -22,6 +22,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { branding } from "../../../config/branding"; // Added branding
 import { Alert } from "react-native";
+import FadeInView from "../../../components/animations/FadeInView";
 
 export default function StaffLoginScreen() {
   const navigation = useNavigation();
@@ -89,7 +90,7 @@ export default function StaffLoginScreen() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.content}>
+            <FadeInView style={styles.content}>
               {/* Icon */}
               {/* Logo */}
               <View style={styles.logoContainer}>
@@ -149,7 +150,7 @@ export default function StaffLoginScreen() {
                   <Text style={styles.loginButtonText}>Anmelden</Text>
                 )}
               </TouchableOpacity>
-            </View>
+            </FadeInView>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -178,7 +179,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 10,
     borderRadius: 100,
   },

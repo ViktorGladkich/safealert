@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { branding } from "../../../config/branding";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import FadeInView from "../../../components/animations/FadeInView";
 
 const RoleButton = ({
   title,
@@ -120,50 +121,52 @@ export default function RoleSelectionScreen() {
           style={styles.scrollView}
         >
           <View style={styles.content}>
-            {/* Logo */}
-            <View
-              style={[
-                styles.logoContainer,
-                {
-                  shadowColor: branding.primaryColor,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 40,
-                  elevation: 20,
-                },
-              ]}
-            >
-              <Image source={branding.logoAsset} style={styles.logo} />
-            </View>
-
-            {/* Company Name */}
-            <Text style={styles.companyName}>{branding.companyName}</Text>
-
-            {/* City */}
-            <Text style={styles.city}>{branding.city}</Text>
+            <FadeInView delay={0}>
+              {/* Logo */}
+              <View
+                style={[
+                  styles.logoContainer,
+                  {
+                    shadowColor: branding.primaryColor,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: 0.2, // Reduced shadow since no bg
+                    shadowRadius: 20,
+                    elevation: 5,
+                  },
+                ]}
+              >
+                <Image source={branding.logoAsset} style={styles.logo} />
+              </View>
+            </FadeInView>
 
             {/* Client Button */}
-            <RoleButton
-              title="KUNDE"
-              icon="person-outline"
-              gradientColors={["#0D47A1", "#1976D2"]}
-              shadowColor="#0D47A1"
-              onPress={() => navigation.navigate("ClientLogin")}
-            />
+            <FadeInView delay={300} style={{ width: "100%" }}>
+              <RoleButton
+                title="KUNDE"
+                icon="person-outline"
+                gradientColors={["#0D47A1", "#1976D2"]}
+                shadowColor="#0D47A1"
+                onPress={() => navigation.navigate("ClientLogin")}
+              />
+            </FadeInView>
 
             {/* Staff Button */}
-            <RoleButton
-              title="PERSONAL"
-              icon="shield-checkmark-outline"
-              gradientColors={["#BF360C", "#FF5722"]}
-              shadowColor="#FF5722"
-              onPress={() => navigation.navigate("StaffLogin")}
-            />
+            <FadeInView delay={500} style={{ width: "100%" }}>
+              <RoleButton
+                title="PERSONAL"
+                icon="shield-checkmark-outline"
+                gradientColors={["#BF360C", "#FF5722"]}
+                shadowColor="#FF5722"
+                onPress={() => navigation.navigate("StaffLogin")}
+              />
+            </FadeInView>
 
-            <View style={styles.spacer} />
+            <FadeInView delay={800}>
+              <View style={styles.spacer} />
 
-            {/* Copyright */}
-            <Text style={styles.copyright}>© 2025 {branding.companyName}</Text>
+              {/* Copyright */}
+              <Text style={styles.copyright}>© 2026 SafeAlert</Text>
+            </FadeInView>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -192,8 +195,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     borderRadius: 100,
-    marginBottom: 24,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    marginBottom: 40, // Increased margin since text is gone
     padding: 10,
   },
   logo: {

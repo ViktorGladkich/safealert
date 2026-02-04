@@ -20,6 +20,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../../../config/firebase";
 import { branding } from "../../../config/branding";
+import FadeInView from "../../../components/animations/FadeInView";
 
 const PRIMARY_COLOR = branding.primaryColor;
 
@@ -121,7 +122,7 @@ export default function ClientRegistrationScreen() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.content}>
+            <FadeInView style={styles.content}>
               {/* Logo */}
               <Image source={branding.logoAsset} style={styles.logo} />
 
@@ -223,7 +224,7 @@ export default function ClientRegistrationScreen() {
                   <Text style={styles.loginLinkHighlight}>Anmelden</Text>
                 </Text>
               </TouchableOpacity>
-            </View>
+            </FadeInView>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>

@@ -203,22 +203,23 @@ export default function ChatScreen() {
     <Actions
       {...props}
       containerStyle={{
-        width: 44,
-        height: 44,
+        width: 50,
+        height: 50,
         alignItems: "center",
         justifyContent: "center",
-        marginLeft: 4,
+        marginLeft: 8,
         marginBottom: 4,
       }}
       icon={() => (
-        <Ionicons name="add-circle" size={28} color={colors.accent} />
+        <Ionicons name="add-circle" size={36} color={colors.accent} />
       )}
-      options={{
-        "Foto aufnehmen": takePhoto,
-        "Aus Galerie wählen": pickImage,
-        Abbrechen: () => {},
+      onPressActionButton={() => {
+        Alert.alert("Medien senden", "Wählen Sie eine Option", [
+          { text: "Foto aufnehmen", onPress: takePhoto },
+          { text: "Galerie öffnen", onPress: pickImage },
+          { text: "Abbrechen", style: "cancel" },
+        ]);
       }}
-      optionTintColor="#222B45"
     />
   );
 
@@ -253,6 +254,19 @@ export default function ChatScreen() {
 
       <GiftedChat
         messages={messages}
+        timeFormat="HH:mm"
+        dateFormat="DD.MM.YYYY"
+        locale="de"
+        textInputProps={{
+          placeholder: "Nachricht schreiben...",
+          style: {
+            color: colors.text,
+            flex: 1,
+            paddingTop: 10,
+            paddingBottom: 10,
+            fontSize: 16,
+          },
+        }}
         onSend={(messages) => onSend(messages)}
         user={{
           _id: userId || userName || "anonymous",

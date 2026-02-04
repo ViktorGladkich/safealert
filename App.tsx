@@ -8,19 +8,23 @@ import StaffNavigator from "./src/features/staff/StaffNavigator";
 import ClientLoginScreen from "./src/features/client/screens/ClientLoginScreen";
 import ClientRegistrationScreen from "./src/features/client/screens/ClientRegistrationScreen";
 import ClientHomeScreen from "./src/features/client/screens/ClientHomeScreen";
+import ClientHistoryScreen from "./src/features/client/screens/ClientHistoryScreen";
+import SystemStatusScreen from "./src/features/client/screens/SystemStatusScreen"; // New
+import HelpScreen from "./src/features/client/screens/HelpScreen"; // New
 import ChatScreen from "./src/features/shared/screens/ChatScreen";
+
 import EmergencyContactsScreen from "./src/features/client/screens/EmergencyContactsScreen";
 import ClientSettingsScreen from "./src/features/client/screens/ClientSettingsScreen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/config/toastConfig";
 
-import { registerForPushNotificationsAsync } from "./src/utils/notifications";
+import { requestAllPermissions } from "./src/utils/permissions";
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   React.useEffect(() => {
-    registerForPushNotificationsAsync();
+    requestAllPermissions();
   }, []);
 
   return (
@@ -42,12 +46,15 @@ export default function App() {
           component={ClientRegistrationScreen}
         />
         <Stack.Screen name="ClientHome" component={ClientHomeScreen} />
+        <Stack.Screen name="ClientHistory" component={ClientHistoryScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
         <Stack.Screen
           name="EmergencyContacts"
           component={EmergencyContactsScreen}
         />
         <Stack.Screen name="ClientSettings" component={ClientSettingsScreen} />
+        <Stack.Screen name="SystemStatus" component={SystemStatusScreen} />
+        <Stack.Screen name="Help" component={HelpScreen} />
       </Stack.Navigator>
       <Toast config={toastConfig} />
     </NavigationContainer>

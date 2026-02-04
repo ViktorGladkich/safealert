@@ -19,6 +19,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../config/firebase";
 import { branding } from "../../../config/branding";
+import Toast from "react-native-toast-message";
+import LoadingOverlay from "../../../components/ui/LoadingOverlay";
+import FadeInView from "../../../components/animations/FadeInView";
 
 const PRIMARY_COLOR = branding.primaryColor;
 
@@ -30,7 +33,11 @@ export default function ClientLoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert("Fehler", "Bitte E-Mail und Passwort eingeben.");
+      Toast.show({
+        type: "error",
+        text1: "Fehler",
+        text2: "Bitte E-Mail und Passwort eingeben.",
+      });
       return;
     }
 
@@ -52,7 +59,11 @@ export default function ClientLoginScreen() {
       if (error.code === "auth/invalid-credential")
         errorMessage = "Ungültige Anmeldedaten.";
 
-      Alert.alert("Fehler", errorMessage);
+      Toast.show({
+        type: "error",
+        text1: "Fehler",
+        text2: errorMessage,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +79,7 @@ export default function ClientLoginScreen() {
       />
 
       <SafeAreaView style={styles.safeArea}>
+        <LoadingOverlay visible={isLoading} message="Anmeldung..." />
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
@@ -84,7 +96,7 @@ export default function ClientLoginScreen() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.content}>
+            <FadeInView style={styles.content}>
               {/* Logo */}
               <Image source={branding.logoAsset} style={styles.logo} />
 
@@ -134,11 +146,7 @@ export default function ClientLoginScreen() {
                 disabled={isLoading}
                 style={styles.loginButton}
               >
-                {isLoading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={styles.loginButtonText}>Anmelden</Text>
-                )}
+                <Text style={styles.loginButtonText}>Anmelden</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -164,7 +172,7 @@ export default function ClientLoginScreen() {
                   </Text>
                 </Text>
               </TouchableOpacity>
-            </View>
+            </FadeInView>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
