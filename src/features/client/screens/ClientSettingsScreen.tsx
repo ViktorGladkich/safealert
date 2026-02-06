@@ -8,13 +8,18 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { auth, db } from "../../../config/firebase";
-import { signOut, updatePassword, updateProfile } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+  signOut,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "firebase/auth";
 
 const PRIMARY_COLOR = "#1E88E5";
 
@@ -22,46 +27,49 @@ export default function ClientSettingsScreen() {
   const navigation = useNavigation();
   const user = auth.currentUser;
 
-  const [name, setName] = useState(user?.displayName || "");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleUpdateProfile = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      // Update Auth Profile
-      await updateProfile(user, { displayName: name });
-
-      // Update Firestore
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, { name: name });
-
-      Alert.alert("Erfolg", "Profil wurde aktualisiert.");
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert(
-        "Fehler",
-        error.message || "Profil konnte nicht aktualisiert werden.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleChangePassword = async () => {
-    if (!user || !newPassword) return;
+    if (!user) return;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Alert.alert("Fehler", "Bitte füllen Sie alle Felder aus.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Fehler", "Die neuen Passwörter stimmen nicht überein.");
+      return;
+    }
+
     setLoading(true);
     try {
+      // Re-authenticate
+      const credential = EmailAuthProvider.credential(
+        user.email!,
+        currentPassword,
+      );
+      await reauthenticateWithCredential(user, credential);
+
+      // Update Password
       await updatePassword(user, newPassword);
-      Alert.alert("Erfolg", "Passwort wurde geändert.");
+
+      Alert.alert("Erfolg", "Passwort wurde erfolgreich geändert.");
+      setCurrentPassword("");
       setNewPassword("");
+      setConfirmPassword("");
     } catch (error: any) {
       console.error(error);
-      Alert.alert(
-        "Fehler",
-        "Bitte loggen Sie sich erneut ein, um das Passwort zu ändern.",
-      );
+      if (error.code === "auth/wrong-password") {
+        Alert.alert("Fehler", "Das aktuelle Passwort ist falsch.");
+      } else {
+        Alert.alert(
+          "Fehler",
+          "Passwort konnte nicht geändert werden. Bitte prüfen Sie Ihre Eingaben.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -95,33 +103,68 @@ export default function ClientSettingsScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
-          {/* Section: Profile */}
+          {/* Section: App Settings (Notifications & Location) */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Mein Profil</Text>
-
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="Ihr Name"
-                placeholderTextColor="#666"
-              />
-            </View>
+            <Text style={styles.sectionTitle}>App Einstellungen</Text>
 
             <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleUpdateProfile}
-              disabled={loading}
+              style={styles.settingRow}
+              onPress={() => Linking.openSettings()}
             >
-              <Text style={styles.actionButtonText}>Speichern</Text>
+              <View style={styles.settingRowLeft}>
+                <Ionicons name="notifications-outline" size={24} color="#FFF" />
+                <Text style={styles.settingLabel}>Benachrichtigungen</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => Linking.openSettings()}
+            >
+              <View style={styles.settingRowLeft}>
+                <Ionicons name="location-outline" size={24} color="#FFF" />
+                <Text style={styles.settingLabel}>Standortzugriff</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#666" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Section: Membership */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Mitgliedschaft</Text>
+            <TouchableOpacity
+              style={styles.settingRow}
+              onPress={() => navigation.navigate("Subscription" as never)}
+            >
+              <View style={styles.settingRowLeft}>
+                <Ionicons name="card-outline" size={24} color="#FFD700" />
+                <Text style={styles.settingLabel}>Abo & Pläne</Text>
+              </View>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Text style={{ color: "#888", fontSize: 14 }}>Free</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </View>
             </TouchableOpacity>
           </View>
 
           {/* Section: Security */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Sicherheit</Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Aktuelles Passwort</Text>
+              <TextInput
+                style={styles.input}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholder="******"
+                placeholderTextColor="#666"
+                secureTextEntry
+              />
+            </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Neues Passwort</Text>
@@ -135,6 +178,18 @@ export default function ClientSettingsScreen() {
               />
             </View>
 
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Passwort bestätigen</Text>
+              <TextInput
+                style={styles.input}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="******"
+                placeholderTextColor="#666"
+                secureTextEntry
+              />
+            </View>
+
             <TouchableOpacity
               style={[styles.actionButton, styles.secondaryButton]}
               onPress={handleChangePassword}
@@ -142,6 +197,26 @@ export default function ClientSettingsScreen() {
             >
               <Text style={styles.actionButtonText}>Passwort ändern</Text>
             </TouchableOpacity>
+          </View>
+
+          {/* Section: Legal */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Rechtliches</Text>
+            <TouchableOpacity style={styles.settingRow}>
+              <Text style={styles.settingLabel}>Datenschutzerklärung</Text>
+              <Ionicons name="open-outline" size={20} color="#666" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.settingRow}>
+              <Text style={styles.settingLabel}>Nutzungsbedingungen (AGB)</Text>
+              <Ionicons name="open-outline" size={20} color="#666" />
+            </TouchableOpacity>
+            <View style={{ marginTop: 16 }}>
+              <Text
+                style={{ color: "#666", fontSize: 12, textAlign: "center" }}
+              >
+                SafeAlert v1.0.2
+              </Text>
+            </View>
           </View>
 
           {/* Section: Logout */}
@@ -265,5 +340,27 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  settingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
+  },
+  settingRowLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  settingLabel: {
+    color: "#FFF",
+    fontSize: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    marginVertical: 16,
   },
 });

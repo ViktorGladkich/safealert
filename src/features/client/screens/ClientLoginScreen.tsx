@@ -150,7 +150,7 @@ export default function ClientLoginScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => Alert.alert("Todo", "Forgot Password flow")}
+                onPress={() => navigation.navigate("ForgotPassword" as never)}
                 style={styles.forgotPassword}
               >
                 <Text style={styles.forgotPasswordText}>

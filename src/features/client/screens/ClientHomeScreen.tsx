@@ -11,6 +11,8 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  doc,
+  updateDoc,
 } from "firebase/firestore";
 import * as Notifications from "expo-notifications";
 import { db, auth } from "../../../config/firebase";
@@ -42,7 +44,7 @@ export default function ClientHomeScreen() {
   const { activeEmergencyId, emergencyStatus } = useActiveEmergency();
   const location = useClientLocation(activeEmergencyId);
 
-  // Chat Notification Logic (Keep here or extract to useChatNotifications hook)
+  // Chat Notification Logic
   useEffect(() => {
     if (!activeEmergencyId) return;
 
@@ -83,6 +85,45 @@ export default function ClientHomeScreen() {
     return () => unsubscribe();
   }, [activeEmergencyId]);
 
+  const handleCancelAlarm = async () => {
+    if (!activeEmergencyId) return;
+
+    let message = "Möchten Sie den Alarm wirklich abbrechen?";
+    let feeWarning = false;
+
+    if (emergencyStatus === "accepted") {
+      message =
+        "ACHTUNG: Der Wachmann ist bereits unterwegs!\n\nBei Abbruch wird eine Gebühr von 50€ fällig.";
+      feeWarning = true;
+    }
+
+    Alert.alert("Alarm abbrechen", message, [
+      { text: "Nein, behalten", style: "cancel" },
+      {
+        text: feeWarning ? "Ja, kostenpflichtig abbrechen" : "Ja, abbrechen",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await updateDoc(doc(db, "emergencies", activeEmergencyId), {
+              status: "cancelled_by_client",
+              cancellationFee: feeWarning,
+              cancelledAt: serverTimestamp(),
+            });
+            Alert.alert(
+              "Abgebrochen",
+              feeWarning
+                ? "Alarm abgebrochen. Die Gebühr wurde Ihrem Konto belastet."
+                : "Alarm erfolgreich abgebrochen.",
+            );
+          } catch (e) {
+            console.error("Cancel error", e);
+            Alert.alert("Fehler", "Konnte nicht abgebrochen werden.");
+          }
+        },
+      },
+    ]);
+  };
+
   const handleAlarm = async (type: AlarmType) => {
     if (!auth.currentUser) return;
     setLoading(true);
@@ -103,7 +144,15 @@ export default function ClientHomeScreen() {
       });
 
       console.log("Emergency Created with ID: ", docRef.id);
-      Alert.alert("SOS GESENDET!", "Hilfe ist unterwegs.");
+      Alert.alert("SOS GESENDET!", "Hilfe ist unterwegs.", [
+        {
+          text: "OK",
+          onPress: () =>
+            (navigation as any).navigate("ClientMap", {
+              emergencyId: docRef.id,
+            }),
+        },
+      ]);
     } catch (e) {
       console.error("Error adding emergency: ", e);
       Alert.alert(
@@ -146,6 +195,11 @@ export default function ClientHomeScreen() {
       <EmergencyStatusCard
         activeEmergencyId={activeEmergencyId}
         emergencyStatus={emergencyStatus}
+        onMapPress={() =>
+          (navigation as any).navigate("ClientMap", {
+            emergencyId: activeEmergencyId,
+          })
+        }
         onChatPress={() =>
           (navigation as any).navigate("Chat", {
             emergencyId: activeEmergencyId,
@@ -153,6 +207,7 @@ export default function ClientHomeScreen() {
             userId: auth.currentUser?.uid,
           })
         }
+        onCancelPress={handleCancelAlarm}
       />
 
       <View style={styles.mainContent}>
@@ -188,7 +243,7 @@ const styles = StyleSheet.create({
   },
   sosContainer: {
     position: "relative",
-    marginTop: 60,
+    marginTop: -140, // Lift higher
   },
   loadingOverlay: {
     position: "absolute",

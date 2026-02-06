@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   StyleSheet,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -23,17 +24,48 @@ import { branding } from "../../../config/branding";
 import FadeInView from "../../../components/animations/FadeInView";
 
 const PRIMARY_COLOR = branding.primaryColor;
+const { width } = Dimensions.get("window");
 
 export default function ClientRegistrationScreen() {
   const navigation = useNavigation<any>();
-  const [name, setName] = useState("");
+
+  // Steps: 1 = Personal Info, 2 = Account Info
+  const [step, setStep] = useState(1);
+
+  // Step 1 Data
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+
+  // Step 2 Data
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleNext = () => {
+    if (step === 1) {
+      if (!firstName || !lastName || !phone) {
+        Alert.alert("Fehler", "Bitte füllen Sie alle Felder aus.");
+        return;
+      }
+      setStep(2);
+    } else {
+      handleRegister();
+    }
+  };
+
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+    } else {
+      navigation.goBack();
+    }
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert("Fehler", "Bitte füllen Sie alle Felder aus.");
       return;
     }
@@ -53,6 +85,8 @@ export default function ClientRegistrationScreen() {
 
     setIsLoading(true);
     try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
       // 1. Create Auth User
       const userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -61,19 +95,20 @@ export default function ClientRegistrationScreen() {
       );
       const user = userCredential.user;
 
-      // 2. Update Profile Display Name
-      await updateProfile(user, { displayName: name });
+      // 2. Update Profile
+      await updateProfile(user, { displayName: fullName });
 
-      // 3. Create User Document in Firestore
+      // 3. Firestore Doc
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         email: user.email,
-        name: name,
+        name: fullName,
+        phone: phone,
         role: "client",
         createdAt: serverTimestamp(),
       });
 
-      // 4. Navigate to Home
+      // 4. Navigate
       navigation.reset({
         index: 0,
         routes: [{ name: "ClientHome" }],
@@ -84,8 +119,9 @@ export default function ClientRegistrationScreen() {
       if (error.code === "auth/email-already-in-use") {
         errorMessage = "Diese E-Mail-Adresse wird bereits verwendet.";
       }
-      if (error.code === "auth/invalid-email") {
-        errorMessage = "Ungültige E-Mail-Adresse.";
+      if (error.code === "auth/invalid-password") {
+        // Fixed error code check
+        errorMessage = "Ungültiges Passwort.";
       }
       if (error.code === "auth/weak-password") {
         errorMessage = "Das Passwort ist zu schwach.";
@@ -94,6 +130,10 @@ export default function ClientRegistrationScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSocialLogin = (provider: string) => {
+    Alert.alert(provider, "Funktion folgt in Kürze.");
   };
 
   return (
@@ -110,120 +150,195 @@ export default function ClientRegistrationScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.keyboardView}
         >
-          {/* Back Button */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
+          {/* Header with Back Button and Progress */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color="white" />
+            </TouchableOpacity>
+
+            {/* Step Indicators */}
+            <View style={styles.stepIndicatorContainer}>
+              <View style={[styles.stepDot, step >= 1 && styles.activeDot]} />
+              <View style={[styles.stepLine, step >= 2 && styles.activeLine]} />
+              <View style={[styles.stepDot, step >= 2 && styles.activeDot]} />
+            </View>
+            <View style={{ width: 40 }} />
+          </View>
 
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <FadeInView style={styles.content}>
+            <FadeInView style={styles.content} key={step}>
               {/* Logo */}
               <Image source={branding.logoAsset} style={styles.logo} />
 
-              <Text style={styles.title}>Registrierung</Text>
-              <Text style={styles.subtitle}>Erstellen Sie ein neues Konto</Text>
+              <Text style={styles.title}>
+                {step === 1 ? "Persönliche Daten" : "Zugangsdaten"}
+              </Text>
+              <Text style={styles.subtitle}>
+                {step === 1
+                  ? "Erzählen Sie uns von sich"
+                  : "Sichern Sie Ihr Konto ab"}
+              </Text>
 
-              {/* Name Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={PRIMARY_COLOR}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Vollständiger Name"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                />
-              </View>
+              {/* STEP 1: Personal Info */}
+              {step === 1 && (
+                <>
+                  <View style={styles.row}>
+                    <View
+                      style={[
+                        styles.inputContainer,
+                        { flex: 1, marginRight: 8 },
+                      ]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Vorname"
+                        placeholderTextColor="rgba(255,255,255,0.5)"
+                        value={firstName}
+                        onChangeText={setFirstName}
+                        autoCapitalize="words"
+                      />
+                    </View>
+                    <View style={[styles.inputContainer, { flex: 1 }]}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Nachname"
+                        placeholderTextColor="rgba(255,255,255,0.5)"
+                        value={lastName}
+                        onChangeText={setLastName}
+                        autoCapitalize="words"
+                      />
+                    </View>
+                  </View>
 
-              {/* Email Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={PRIMARY_COLOR}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="E-Mail"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                />
-              </View>
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name="call-outline"
+                      size={20}
+                      color={PRIMARY_COLOR}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Telefonnummer"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
+                      value={phone}
+                      onChangeText={setPhone}
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                </>
+              )}
 
-              {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={PRIMARY_COLOR}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Passwort"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
+              {/* STEP 2: Account Info */}
+              {step === 2 && (
+                <>
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={PRIMARY_COLOR}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="E-Mail"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
+                      value={email}
+                      onChangeText={setEmail}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+                  </View>
 
-              {/* Confirm Password Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={20}
-                  color={PRIMARY_COLOR}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Passwort bestätigen"
-                  placeholderTextColor="rgba(255,255,255,0.5)"
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry
-                />
-              </View>
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={PRIMARY_COLOR}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Passwort"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry
+                    />
+                  </View>
 
-              {/* Register Button */}
+                  <View style={styles.inputContainer}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={PRIMARY_COLOR}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Passwort bestätigen"
+                      placeholderTextColor="rgba(255,255,255,0.5)"
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      secureTextEntry
+                    />
+                  </View>
+                </>
+              )}
+
+              {/* Main Action Button */}
               <TouchableOpacity
-                onPress={handleRegister}
+                onPress={handleNext}
                 disabled={isLoading}
-                style={styles.registerButton}
+                style={styles.actionButton}
               >
                 {isLoading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={styles.registerButtonText}>Registrieren</Text>
+                  <Text style={styles.actionButtonText}>
+                    {step === 1 ? "Weiter" : "Konto erstellen"}
+                  </Text>
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate("ClientLogin")}
-                style={styles.loginLink}
-              >
-                <Text style={styles.loginLinkText}>
-                  Bereits ein Konto?{" "}
-                  <Text style={styles.loginLinkHighlight}>Anmelden</Text>
-                </Text>
-              </TouchableOpacity>
+              {/* Social Login (Only show on Step 1 or 2? Usually Step 1 or generic. Let's keep at Step 1 for easier entry) */}
+              {step === 1 && (
+                <>
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.divider} />
+                    <Text style={styles.dividerText}>ODER</Text>
+                    <View style={styles.divider} />
+                  </View>
+
+                  <View style={styles.socialButtonsContainer}>
+                    <TouchableOpacity
+                      style={styles.socialButton}
+                      onPress={() => handleSocialLogin("Google")}
+                    >
+                      <Ionicons name="logo-google" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.socialButton}
+                      onPress={() => handleSocialLogin("Apple")}
+                    >
+                      <Ionicons name="logo-apple" size={24} color="#FFF" />
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("ClientLogin")}
+                    style={styles.loginLink}
+                  >
+                    <Text style={styles.loginLinkText}>
+                      Bereits ein Konto?{" "}
+                      <Text style={styles.loginLinkHighlight}>Anmelden</Text>
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
             </FadeInView>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -243,32 +358,75 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 20,
+  },
+  stepIndicatorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  stepDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  activeDot: {
+    backgroundColor: PRIMARY_COLOR,
+    transform: [{ scale: 1.2 }],
+  },
+  stepLine: {
+    width: 30,
+    height: 2,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    marginHorizontal: 4,
+  },
+  activeLine: {
+    backgroundColor: PRIMARY_COLOR,
+  },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: "center",
     padding: 24,
   },
   content: {
     alignItems: "center",
+    marginTop: 20,
   },
   logo: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
     resizeMode: "contain",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   title: {
     color: "#fff",
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     color: "rgba(255,255,255,0.6)",
-    fontSize: 16,
+    fontSize: 14,
     textAlign: "center",
     marginBottom: 32,
+  },
+  row: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
   },
   inputContainer: {
     width: "100%",
@@ -283,14 +441,15 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     opacity: 0.8,
+    marginRight: 12,
   },
   input: {
     flex: 1,
     color: "#fff",
-    padding: 16,
+    paddingVertical: 16,
     fontSize: 16,
   },
-  registerButton: {
+  actionButton: {
     width: "100%",
     height: 56,
     borderRadius: 16,
@@ -304,7 +463,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  registerButtonText: {
+  actionButtonText: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
@@ -321,13 +480,35 @@ const styles = StyleSheet.create({
     color: PRIMARY_COLOR,
     fontWeight: "bold",
   },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
-    padding: 10,
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
     backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 20,
-    zIndex: 10,
+  },
+  dividerText: {
+    color: "rgba(255,255,255,0.5)",
+    marginHorizontal: 16,
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  socialButtonsContainer: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  socialButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
 });

@@ -12,9 +12,13 @@ import ClientHistoryScreen from "./src/features/client/screens/ClientHistoryScre
 import SystemStatusScreen from "./src/features/client/screens/SystemStatusScreen"; // New
 import HelpScreen from "./src/features/client/screens/HelpScreen"; // New
 import ChatScreen from "./src/features/shared/screens/ChatScreen";
+import ClientMapScreen from "./src/features/client/screens/ClientMapScreen";
 
 import EmergencyContactsScreen from "./src/features/client/screens/EmergencyContactsScreen";
 import ClientSettingsScreen from "./src/features/client/screens/ClientSettingsScreen";
+import ClientProfileScreen from "./src/features/client/screens/ClientProfileScreen";
+import SubscriptionScreen from "./src/features/client/screens/SubscriptionScreen";
+import ForgotPasswordScreen from "./src/features/client/screens/ForgotPasswordScreen";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "./src/config/toastConfig";
 
@@ -45,6 +49,7 @@ export default function App() {
           name="ClientRegistration"
           component={ClientRegistrationScreen}
         />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         <Stack.Screen name="ClientHome" component={ClientHomeScreen} />
         <Stack.Screen name="ClientHistory" component={ClientHistoryScreen} />
         <Stack.Screen name="Chat" component={ChatScreen} />
@@ -53,8 +58,15 @@ export default function App() {
           component={EmergencyContactsScreen}
         />
         <Stack.Screen name="ClientSettings" component={ClientSettingsScreen} />
+        <Stack.Screen name="ClientProfile" component={ClientProfileScreen} />
+        <Stack.Screen
+          name="Subscription"
+          component={SubscriptionScreen}
+          options={{ presentation: "modal" }}
+        />
         <Stack.Screen name="SystemStatus" component={SystemStatusScreen} />
         <Stack.Screen name="Help" component={HelpScreen} />
+        <Stack.Screen name="ClientMap" component={ClientMapScreen} />
       </Stack.Navigator>
       <Toast config={toastConfig} />
     </NavigationContainer>

@@ -252,39 +252,45 @@ export default function ChatScreen() {
         </View>
       </SafeAreaView>
 
-      <GiftedChat
-        messages={messages}
-        timeFormat="HH:mm"
-        dateFormat="DD.MM.YYYY"
-        locale="de"
-        textInputProps={{
-          placeholder: "Nachricht schreiben...",
-          style: {
-            color: colors.text,
-            flex: 1,
-            paddingTop: 10,
-            paddingBottom: 10,
-            fontSize: 16,
-          },
-        }}
-        onSend={(messages) => onSend(messages)}
-        user={{
-          _id: userId || userName || "anonymous",
-          name: userName || "Anonymous",
-        }}
-        renderBubble={renderBubble}
-        renderInputToolbar={renderInputToolbar}
-        renderActions={renderActions}
-        renderSend={(props) => (
-          <Send {...props}>
-            <View style={styles.sendButton}>
-              <Ionicons name="send" size={24} color={colors.accent} />
-            </View>
-          </Send>
-        )}
-        listProps={{ style: { backgroundColor: colors.background } }}
-        isCustomViewBottom
-      />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      >
+        <GiftedChat
+          messages={messages}
+          timeFormat="HH:mm"
+          dateFormat="DD.MM.YYYY"
+          locale="de"
+          textInputProps={{
+            placeholder: "Nachricht schreiben...",
+            style: {
+              color: colors.text,
+              flex: 1,
+              paddingTop: 10,
+              paddingBottom: 10,
+              fontSize: 16,
+            },
+          }}
+          onSend={(messages) => onSend(messages)}
+          user={{
+            _id: userId || userName || "anonymous",
+            name: userName || "Anonymous",
+          }}
+          renderBubble={renderBubble}
+          renderInputToolbar={renderInputToolbar}
+          renderActions={renderActions}
+          renderSend={(props) => (
+            <Send {...props}>
+              <View style={styles.sendButton}>
+                <Ionicons name="send" size={24} color={colors.accent} />
+              </View>
+            </Send>
+          )}
+          listProps={{ style: { backgroundColor: colors.background } }}
+          isCustomViewBottom
+        />
+      </KeyboardAvoidingView>
 
       {isUploading && (
         <View style={styles.uploadingOverlay}>
@@ -293,10 +299,6 @@ export default function ChatScreen() {
             Foto wird hochgeladen...
           </Text>
         </View>
-      )}
-
-      {Platform.OS === "android" && (
-        <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={30} />
       )}
     </View>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getDoc, doc } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db, auth } from "../../../config/firebase";
 
 export interface UserProfile {
@@ -11,25 +11,21 @@ export function useClientProfile() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (auth.currentUser) {
-        try {
-          const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data() as UserProfile);
-          } else {
-            // Fallback
-            setUserProfile({
-              name: auth.currentUser.displayName || "Kunde",
-              email: auth.currentUser.email || "",
-            });
-          }
-        } catch (e) {
-          console.error("Error fetching profile:", e);
-        }
+    if (!auth.currentUser) return;
+
+    const userRef = doc(db, "users", auth.currentUser.uid);
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        setUserProfile(doc.data() as UserProfile);
+      } else {
+        setUserProfile({
+          name: auth.currentUser?.displayName || "Kunde",
+          email: auth.currentUser?.email || "",
+        });
       }
-    };
-    fetchProfile();
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return userProfile;

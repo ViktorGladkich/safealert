@@ -54,6 +54,16 @@ export default function StaffMapScreen() {
     }
   }, [emergencies.length]);
 
+  // Sync selectedEmergency with updated data from Firestore
+  useEffect(() => {
+    if (selectedEmergency) {
+      const updated = emergencies.find((e) => e.id === selectedEmergency.id);
+      if (updated && updated.status !== selectedEmergency.status) {
+        setSelectedEmergency(updated);
+      }
+    }
+  }, [emergencies]);
+
   const handleMarkerPress = (e: any, emergency: any) => {
     e.stopPropagation();
     setSelectedEmergency(emergency);

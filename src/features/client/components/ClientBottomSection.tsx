@@ -7,6 +7,7 @@ import {
   Alert,
   Linking,
   Dimensions,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -90,16 +91,16 @@ export default function ClientBottomSection({
 
             <TouchableOpacity
               style={styles.actionItem}
-              onPress={() => Alert.alert("Standort", "Demnächst verfügbar!")}
+              onPress={() => navigation.navigate("Subscription")}
             >
               <LinearGradient
-                colors={["#1976D2", "#42A5F5"]}
+                colors={["#FFD700", "#FFA000"]}
                 style={styles.actionIconContainer}
               >
-                <Ionicons name="map" size={24} color="white" />
+                <Ionicons name="star" size={24} color="#000" />
               </LinearGradient>
               <Text style={[styles.actionLabel, { color: colors.text }]}>
-                Standort
+                Premium
               </Text>
             </TouchableOpacity>
 

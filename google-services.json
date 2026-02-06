@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "803296529846",
+    "project_id": "safealert-455c5",
+    "storage_bucket": "safealert-455c5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803296529846:android:a6a49b9c4c915038414517",
+        "android_client_info": {
+          "package_name": "com.viktor.safealert"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw7yT3B7qXY35Q4O29DylDVn4gYuStcso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

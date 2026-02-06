@@ -50,7 +50,7 @@ export default function ClientMenu({
         {
           icon: "person-outline",
           title: "Mein Profil",
-          onPress: () => navigation.navigate("ClientSettings"),
+          onPress: () => navigation.navigate("ClientProfile"),
         },
         {
           icon: "time-outline",
@@ -123,7 +123,13 @@ export default function ClientMenu({
         >
           <SafeAreaView edges={["top"]} style={styles.headerSafeArea}>
             <View style={styles.headerContent}>
-              <View style={styles.userInfo}>
+              <TouchableOpacity
+                style={styles.userInfo}
+                onPress={() => {
+                  onClose();
+                  navigation.navigate("ClientProfile");
+                }}
+              >
                 <View style={styles.avatarContainer}>
                   <Text style={styles.avatarText}>
                     {userProfile?.name?.charAt(0).toUpperCase() || "K"}
@@ -137,7 +143,7 @@ export default function ClientMenu({
                     {userProfile?.email || "Lädt..."}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
 
               {/* Close Button */}
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -199,6 +205,43 @@ export default function ClientMenu({
               ))}
             </View>
           ))}
+
+          {/* PREMIUM BANNER */}
+          <TouchableOpacity
+            style={styles.premiumBanner}
+            onPress={() => {
+              onClose();
+              navigation.navigate("Subscription");
+            }}
+          >
+            <LinearGradient
+              colors={["#FFD700", "#FFA000"]}
+              style={styles.premiumGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <View style={styles.premiumContent}>
+                <Ionicons
+                  name="star"
+                  size={24}
+                  color="#000"
+                  style={{ marginRight: 10 }}
+                />
+                <View>
+                  <Text style={styles.premiumTitle}>Upgrade auf Premium</Text>
+                  <Text style={styles.premiumSubtitle}>
+                    24/7 Profi-Schutz & mehr
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color="#000"
+                  style={{ marginLeft: "auto" }}
+                />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={[styles.versionText, { color: colors.textSecondary }]}>
@@ -330,6 +373,34 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   versionText: {
+    fontSize: 12,
+  },
+  premiumBanner: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 20,
+    borderRadius: 12,
+    overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#FFD700",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  premiumGradient: {
+    padding: 16,
+  },
+  premiumContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  premiumTitle: {
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  premiumSubtitle: {
+    color: "#333",
     fontSize: 12,
   },
 });

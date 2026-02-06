@@ -14,12 +14,16 @@ interface EmergencyStatusCardProps {
   activeEmergencyId: string | null;
   emergencyStatus: string | null;
   onChatPress: () => void;
+  onMapPress?: () => void;
+  onCancelPress?: () => void;
 }
 
 export default function EmergencyStatusCard({
   activeEmergencyId,
   emergencyStatus,
   onChatPress,
+  onMapPress,
+  onCancelPress,
 }: EmergencyStatusCardProps) {
   const { colors } = useTheme();
   const slideAnim = useRef(new Animated.Value(100)).current;
@@ -55,10 +59,7 @@ export default function EmergencyStatusCard({
     }
   }, [activeEmergencyId, slideAnim, opacityAnim]);
 
-  if (!activeEmergencyId) return null; // Or render nothing logic inside parent? Animation handles visual but removing from tree is good.
-  // Actually we need to keep it mounted for exit animation if handled by parent state change, but here useEffect handles it.
-  // We can return null if activeEmergencyId is null AND animation finished.
-  // For simplicity, we just return the Animated View which will be hidden.
+  if (!activeEmergencyId) return null;
 
   return (
     <Animated.View
@@ -72,7 +73,11 @@ export default function EmergencyStatusCard({
         },
       ]}
     >
-      <View style={styles.statusCardContent}>
+      <TouchableOpacity
+        onPress={onMapPress}
+        style={styles.statusCardContent}
+        activeOpacity={0.7}
+      >
         <View style={styles.statusIndicator}>
           <View style={styles.statusDot} />
           <Text style={[styles.statusTitle, { color: colors.text }]}>
@@ -84,12 +89,31 @@ export default function EmergencyStatusCard({
             ? "🚨 HILFE IST UNTERWEGS"
             : "🔍 SUCHE WACHMANN..."}
         </Text>
-      </View>
-
-      <TouchableOpacity onPress={onChatPress} style={styles.chatButton}>
-        <Ionicons name="chatbubbles" size={22} color="white" />
-        <Text style={styles.chatButtonText}>Chat</Text>
+        <Text style={{ fontSize: 10, color: "#666", marginTop: 2 }}>
+          Tippen für Karte
+        </Text>
       </TouchableOpacity>
+
+      <View style={styles.actionsContainer}>
+        {/* Cancel Button */}
+        <TouchableOpacity
+          onPress={onCancelPress}
+          style={[
+            styles.actionButton,
+            { backgroundColor: "#FFEBEE", marginRight: 8 },
+          ]}
+        >
+          <Ionicons name="close" size={24} color="#D32F2F" />
+        </TouchableOpacity>
+
+        {/* Chat Button */}
+        <TouchableOpacity
+          onPress={onChatPress}
+          style={[styles.actionButton, { backgroundColor: "#2196F3" }]}
+        >
+          <Ionicons name="chatbubbles" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 }
@@ -102,7 +126,7 @@ const styles = StyleSheet.create({
     right: 20,
     borderRadius: 16,
     borderWidth: 1,
-    padding: 16,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -115,6 +139,7 @@ const styles = StyleSheet.create({
   },
   statusCardContent: {
     flex: 1,
+    marginRight: 8,
   },
   statusIndicator: {
     flexDirection: "row",
@@ -138,17 +163,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  chatButton: {
-    backgroundColor: "#2196F3",
+  actionsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 12,
   },
-  chatButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    marginLeft: 8,
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
 });
